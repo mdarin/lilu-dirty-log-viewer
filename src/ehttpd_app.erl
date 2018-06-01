@@ -22,7 +22,7 @@
 %%--------------------------------------------------------------------
 
 start(_Type, _StartArgs) ->
-    Res = ehttpd:start(),
+    Res = ehttpd_sup:start(),
 		io:format("eHTTPD has started~n",[]),
 		Res.
 
@@ -34,4 +34,6 @@ start(_Type, _StartArgs) ->
 %%--------------------------------------------------------------------
 
 stop(_State) ->
+		ehttpd_sup:stop(stop),
+		io:format("eHTTPD has stopped~n",[]),
     ok.

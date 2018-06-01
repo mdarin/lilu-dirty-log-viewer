@@ -1,12 +1,13 @@
-{application, ehttpd,
- [{description, "ct log viewer"},
-  {vsn, "0.0.1"},
-  {modules, []},
-  {registered, [ehttpd]},
-  {maintainers, ["Michael DARIN"]},
-	{mod,{ehttpd_app,[]}},
-  {licenses, ["BSD"]},
-  %{links, [{"GitHub", "https://github.com/jcomellas/getopt"}]},
-  {applications, [kernel, stdlib]},
-	{start_phases, []}
-]}.
+{application, ehttpd,[
+		{description, "ct log viewer"},
+		{vsn, "0.0.1"},
+		{modules, [ehttpd_app, ehttpd, ehttpd_sup]},
+		{registered, [ehttpd]},
+		{maintainers, ["Michael DARIN"]},
+		{mod,{ehttpd_app,[]}},
+		{licenses, ["BSD"]},
+		{links, [{"GitHub", "https://github.com/mdarin/ehttpd"}]},
+		{applications, [kernel, stdlib]},
+		{start_phases, []}
+	]
+}.
