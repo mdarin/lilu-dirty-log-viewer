@@ -28,18 +28,26 @@ main(_) ->
   end.
 
 run_server() ->
+
+	% get working directory
+	{ok,CargoRoot} = file:get_cwd(),
+	SrvRoot = lists:concat([CargoRoot,"/test/log"]),
+	DocRoot = lists:concat([CargoRoot,"/test/log"]),
+
   case inets:start() of
 		ok -> {ok,inets};
 		{error,{already_started,inets}} -> {ok,inets} 
 	end,
+
+
   case inets:start(httpd, [
     {port, 35000},
     {server_name, "ctlogviewer"},
     %{server_root, "/tmp"},
     %{document_root, "/tmp"},
 		%
-    {server_root, "/home/user/src/ehttpd/root/www"},
-    {document_root, "/home/user/src/ehttpd/root/www"},
+    {server_root, SrvRoot},
+    {document_root, DocRoot},
 		{directory_index, ["index.hml", "welcome.html"]},
 	
     {bind_address, "localhost"}
