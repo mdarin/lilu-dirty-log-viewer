@@ -1,3 +1,11 @@
+%%%%----------------------------------------------
+%%% Module: LiLu log viewer OTP application API
+%%% Description:
+%%% Author:
+%%%
+%%% wiki page -> [link to wiki or page name]
+%%%%----------------------------------------------
+
 %% ---
 %%  Excerpted from "Programming Erlang",
 %%  published by The Pragmatic Bookshelf.

@@ -1,5 +1,5 @@
 %%%%----------------------------------------------
-%%% Module:
+%%% Module: LiLu log viewr app supervisor
 %%% Description:
 %%% Author:
 %%%

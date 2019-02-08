@@ -1,0 +1,20 @@
+%%%%----------------------------------------------
+%%% Module: LiLu log viewer app source
+%%% Description:
+%%% Author:
+%%%
+%%% wiki page -> [link to wiki or page name]
+%%%%----------------------------------------------
+{application, lilu, [
+		{description, "LiLu log viewer"},
+		{vsn, "0.0.1"},
+		{modules, [lilu_app, lilu, lilu_sup]},
+		{registered, [lilu]},
+		{maintainers, ["Michael DARIN"]},
+		{mod,{lilu_app,[]}},
+		{licenses, ["BSD"]},
+		{links, [{"GitHub", "https://github.com/mdarin/lilu"}]},
+		{applications, [sasl, kernel, stdlib]},
+		{start_phases, []}
+	]
+}.
