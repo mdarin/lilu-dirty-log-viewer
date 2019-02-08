@@ -12,7 +12,7 @@
 		{registered, [lilu]},
 		{maintainers, ["Michael DARIN"]},
 		{mod,{lilu_app,[]}},
-		{licenses, ["BSD"]},
+		{licenses, ["MIT"]},
 		{links, [{"GitHub", "https://github.com/mdarin/lilu"}]},
 		{applications, [sasl, kernel, stdlib]},
 		{start_phases, []}
