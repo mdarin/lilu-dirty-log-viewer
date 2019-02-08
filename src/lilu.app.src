@@ -13,7 +13,7 @@
 		{maintainers, ["Michael DARIN"]},
 		{mod,{lilu_app,[]}},
 		{licenses, ["MIT"]},
-		{links, [{"GitHub", "https://github.com/mdarin/lilu"}]},
+		{links, [{"GitHub", "https://github.com/mdarin/lilu-dirty-log-viewer.git"}]},
 		{applications, [sasl, kernel, stdlib]},
 		{start_phases, []}
 	]
