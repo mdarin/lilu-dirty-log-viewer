@@ -9,41 +9,33 @@
 %%%
 %%% A simple "Hello, world" server in the Erlang.
 %%%
-
 %https://stackoverflow.com/questions/2206933/how-to-write-a-simple-webserver-in-erlang
-
 %% documentation
 % https://erldoc.com/doc/docs-17.4/inets/httpd.html
-
-
 %Keep in mind, this exposes your /tmp directory.
-
 %To run, simply:
 %$ escript ./hello_erlang.erl
-%
-
-%%%-------------------------------------------------------------------
-%%% File    : gen_server_template.full
-%%% Author  : my name <yourname@localhost.localdomain>
-%%% Description : 
-%%%
-%%% Created :  2 Mar 2007 by my name <yourname@localhost.localdomain>
-%%%-------------------------------------------------------------------
--module().
-
+-module(lilu).
 -behaviour(gen_server).
 
+%DEBUG
+-compile([export_all]).
+
+
 % user API
--export([main/1, run_server/0, stop/0, start/0]).
+-export([list/0, start_viewer/2, stop_viewer/1]).
 
 %% server control API
--export([start_link/0, stop/0]).
+-export([start_link/0, stop/0, start/0]).
 
 %% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-	 terminate/2, code_change/3]).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -record(state, {}).
+
+-define(SERVER, lilu_viewer_manager).
+-define(LILUPORT_DEFAULT, 45813).
+
 
 %%====================================================================
 %% API
@@ -54,6 +46,22 @@
 %%--------------------------------------------------------------------
 start_link() ->
 	gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+
+start() ->
+	start_link(). 
+
+stop() ->
+	%exit(whereis(?SERVER), shutdown).
+	gen_server:cast(?SERVER, stop).
+
+list() ->
+	gen_server:call(?SERVER, viewers_list).
+	
+start_viewer(ViewerName, ViewerSpec) ->
+	gen_server:cast(?SERVER, {start_viewer,ViewerName,ViewerSpec}).
+
+stop_viewer(ViewerName) ->
+	gen_server:cast(?SERVER, {stop_viewer,ViewerName}).
 
 %%====================================================================
 %% gen_server callbacks
@@ -67,7 +75,10 @@ start_link() ->
 %% Description: Initiates the server
 %%--------------------------------------------------------------------
 init([]) ->
-	{ok, #state{}}.
+	% state contains pairs viewer ~ pid(InetPid)
+	%{ok, #state{}}.
+	%{ok,#{}).
+	{ok,[]}.
 
 %%--------------------------------------------------------------------
 %% Function: %% handle_call(Request, From, State) -> {reply, Reply, State} |
@@ -78,12 +89,14 @@ init([]) ->
 %%                                      {stop, Reason, State}
 %% Description: Handling call messages
 %%--------------------------------------------------------------------
-handle_call(_Request, _From, State) ->
+handle_call(viewers_list = Request, _From, State) ->
 % get running viewer workers list
-	Reply = ok,
+	Reply = {viewers,State}, %ok,
+	%io:format("~p: req -> ~p list -> ~p~n",[?MODULE, Request, Reply]),
 	{reply, Reply, State};
 
 handle_call(_Request, _From, State) ->
+	io:format("~p:call default ~p~n",[?MODULE, _Request]),
 	Reply = ok,
 	{reply, Reply, State}.
 
@@ -93,15 +106,26 @@ handle_call(_Request, _From, State) ->
 %%                                      {stop, Reason, State}
 %% Description: Handling cast messages
 %%--------------------------------------------------------------------
-handle_cast({start_viewer,ViewerName}, State) ->
+handle_cast({start_viewer,ViewerName,ViewerSpec}, State) ->
 % function to start new viewer worker with name ViewerName
-	io:format("~p:start ~p~n",[?MODULE,ViewerName]),
-	{noreply, State};
+	io:format("~p:start ~p~n spec -> ~p~n",[?MODULE,ViewerName,ViewerSpec]),
+	ViewerPid = run_viewer(ViewerName, ViewerSpec),
+	NewState = [{ViewerName,ViewerPid}|State],
+	{noreply, NewState};
 
 handle_cast({stop_viewer,ViewerName}, State) ->
 % function to stop viewer worker with name ViewerName
-	io:format("~p:stop ~p~n",[?MODULE,ViewerName]),
-	{noreply, State};
+	NewState = case proplists:is_defined(ViewerName, State) of
+		true ->
+			io:format(" ** LiLu stopping viever: ~p **~n", [ViewerName]),
+			remove_viewer(ViewerName),
+			proplists:delete(ViewerName, State);
+		_ -> 
+			io:format(" ** LiLu stopping skipped~n",[]),
+			io:format(" ** unknown viewer: ~p~n", [ViewerName]),
+			State
+	end,
+	{noreply, NewState};
 
 handle_cast({restart_viewer,ViewerName}, State) ->
 % function to restart viewer worker with name ViewerName
@@ -113,8 +137,17 @@ handle_cast({configure_viewer,ViewerName}, State) ->
 	io:format("~p:configure ~p~n",[?MODULE,ViewerName]),
 	{noreply, State};
 
+handle_cast(stop, State) ->
+% stop the server LiLu 
+	io:format(" ** now LiLu with name ~p is stopping  **~n", [?SERVER]),
+	io:format(" ** active viewers that will terminated:~n~p~n", [State]),
+	% in this case terminate do not call!
+	% lilu_sup:stop_child(lilu),
+	{stop, normal, State};
+
 % default handler
 handle_cast(_Msg, State) ->
+	io:format("~p:cast default ~p~n",[?MODULE,_Msg]),
 	{noreply, State}.
 
 %%--------------------------------------------------------------------
@@ -133,7 +166,19 @@ handle_info(_Info, State) ->
 %% cleaning up. When it returns, the gen_server terminates with Reason.
 %% The return value is ignored.
 %%--------------------------------------------------------------------
-terminate(_Reason, _State) ->
+terminate(Reason, State) ->
+	%TODO: terminates all instances 
+	io:format(" ** LiLu terminates with reason: ~p **~n", [Reason]),
+	io:format(" ** stopping yet active viewers:~n", []),
+	lists:foreach(
+		fun({ViewerName,ViewerPid}) ->
+				io:format(" ~p~n", [ViewerName]),
+				remove_viewer(ViewerName),
+				proplists:delete(ViewerName, State);
+			(_Viewer) -> 
+				ok 
+		end
+	, State), 
 	ok.
 
 %%--------------------------------------------------------------------
@@ -143,49 +188,55 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
 	{ok, State}.
 
+
+
 %%--------------------------------------------------------------------
 %%% Internal functions
 %%--------------------------------------------------------------------
 
-
-main(_) ->
-	start(),
-	receive
-		stop -> ok
-	end.
-
-run_server() ->
-
-	% get working directory
-	{ok,CargoRoot} = file:get_cwd(),
-	SrvRoot = lists:concat([CargoRoot,"/test/log"]),
-	DocRoot = lists:concat([CargoRoot,"/test/log"]),
-
-	case inets:start() of
-		ok -> {ok,inets};
-		{error,{already_started,inets}} -> {ok,inets} 
+% prepare and run instance of httpd server
+run_viewer(ViewerName, ViewerSpec) ->
+	%TODO: prepare httpd configuration
+	case is_map(ViewerSpec) of
+		true -> io:format("~p:start ~p~n spec is map -> ~p~n",[?MODULE,ViewerName,ViewerSpec]);
+		_ -> io:format("~p:start ~p~n spec is proplist -> ~p~n", [?MODULE,ViewerName,ViewerSpec])
 	end,
 
+	% get working directory
+	%{ok,CargoRoot} = file:get_cwd(),
+	BindAddress = "localhost",
+	Port = ?LILUPORT_DEFAULT,
+	{ok,Root} = file:get_cwd(),
+	SrvRoot = lists:concat([Root,"/test/log"]),
+	DocRoot = lists:concat([Root,"/test/log"]),
+	DirIndex = ["index.hml", "welcome.html"],
 
-  case inets:start(httpd, [
-		{port, 35000},
-		{server_name, "ctlogviewer"},
-		%{server_root, "/tmp"},
-		%{document_root, "/tmp"},
+
+	% create httpd spec 
+	HttpdSpec = [
+		{bind_address, BindAddress},
+		{port, Port},
+		{server_name, ViewerName},
 		{server_root, SrvRoot},
 		{document_root, DocRoot},
-		{directory_index, ["index.hml", "welcome.html"]},
-	{bind_address, "localhost"}
-	], stand_alone) of 
-		{ok, Inets} -> {ok,Inets};
-		{error,{already_started,Inets}} -> {ok,Inets}
-	end.
+		{directory_index, DirIndex}
+	],
 
-start() -> start_link(). 
-%run_server().                                                       
+	% start httpd instance 
+	ChildSpec = #{
+		id => ViewerName, %TODO: <T>_to_atom(ViewerName) ??
+		start => {inets, start, [httpd, HttpdSpec, stand_alone]},
+		restart => permanent,
+		shutdown => 25000,
+		type => worker,
+		modules => [inets]
+	},
+	{ok,ViewerPid} = lilu_sup:start_child(ViewerName, ChildSpec),
+	io:format("~p:viewer -> ~p~n", [?MODULE, ViewerPid]),
+	ViewerPid.
 
-stop() ->
-	%inets:stop(),
-	%TODO:gen_server:cast(stop)
-	io:format("ehttpd worker stopped~n",[]).
+
+% stop viewer instance of httpd server
+remove_viewer(VeiwerName) ->
+	lilu_sup:stop_child(VeiwerName).
 

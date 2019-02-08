@@ -14,7 +14,7 @@
 %%  We make no guarantees that this code is fit for any purpose. 
 %%  Visit http://www.pragmaticprogrammer.com/titles/jaerlang for more book information.
 %%---
--module(ehttpd_app).
+-module(lilu_app).
 -behaviour(application).
 -export([start/2, stop/1]).
 
@@ -30,9 +30,9 @@
 %%--------------------------------------------------------------------
 
 start(_Type, _StartArgs) ->
-    Res = ehttpd_sup:start(),
-		io:format("eHTTPD has started~n",[]),
-		Res.
+	Res = lilu_sup:start(),
+	io:format(" ** LiLu has started **~n",[]),
+	Res.
 
 %%--------------------------------------------------------------------
 %% Function: stop(State) -> void()
@@ -42,6 +42,7 @@ start(_Type, _StartArgs) ->
 %%--------------------------------------------------------------------
 
 stop(_State) ->
-		ehttpd_sup:stop(stop),
-		io:format("eHTTPD has stopped~n",[]),
-    ok.
+	lilu_sup:stop(stop),
+	io:format(" ** LiLu has stopped **~n",[]),
+	ok.
+
