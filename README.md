@@ -14,58 +14,57 @@ LiLi
 
 ```erlang
 
-	As proplist:
 	
-	ViewerSpec = [
-		{bind_address, BindAddress},
-		{port, Port},
-		{root, Root},
-		{server_name, ViewerName},
-		{server_root, SrvRoot},
-		{document_root, DocRoot},
-		{directory_index, DirIndex}
-	]
 
-	As a map
-
-	ViewerSpec = #{
-		bind_address => BindAddress,
-		port => Port,
-		root => Root,
-		server_name => ViewerName,
-		server_root => SrvRoot,
-		document_root => DocRoot,
-		directory_index => DirIndex
-	} 
-
-	Exaple:
+Exaple:
 	
-	BindAddress = "localhost",
-	Port = 12345,
-	{ok,Root} = file:get_cwd(),
-	SrvRoot = lists:concat([Root,"/test"]),
-	DocRoot = lists:concat([Root,"/test"]),
-	DirIndex = ["index.hml", "welcome.html"],
+BindAddress = "localhost".
+Port = 12345.
+{ok,Root} = file:get_cwd().
+SrvRoot = lists:concat([Root,"/test"]).
+DocRoot = lists:concat([Root,"/test"]).
+DirIndex = ["index.hml", "welcome.html"].
 
-	>application:start(lilu).
-	>lilu:start_viewer("ct", ViewerSpec).
+% As proplist:	
+ViewerSpec = [
+	{bind_address, BindAddress},
+	{port, Port},
+	{root, Root},
+	{server_name, ViewerName},
+	{server_root, SrvRoot},
+	{document_root, DocRoot},
+	{directory_index, DirIndex}
+].
 
-	On success you will see the result in your browser
+% As a map:
+ViewerSpec = #{
+	bind_address => BindAddress,
+	port => Port,
+	root => Root,
+	server_name => ViewerName,
+	server_root => SrvRoot,
+	document_root => DocRoot,
+	directory_index => DirIndex
+}.
+
+% start LiLu viever manager
+>application:start(lilu).
+
+% and start a viewer
+>lilu:start_viewer("ct", ViewerSpec).
+```
+On success you will see the result in your browser
 
 ```
-	localhost:12345/test/index.html
+localhost:12345/test/index.html
 ```
-
-	Or you can see directory items if you ommit index.html just
+Or you can see directory items if you ommit index.html just
 
 ```
-	localhost:12345/test
+localhost:12345/test
 ``` 
-
-	You can stop viewer using this fucnction call
-
+You can stop viewer using this fucnction call
 ```erlang
-	lilu:stop_viewer("ct").
+>lilu:stop_viewer("ct").
 ```
-
-	TODO: documentation...
+TODO: documentation...
