@@ -12,20 +12,15 @@
 
 %To run, simply:
 %$ escript ./hello_erlang.erl
-
+%
 -module(ehttpd).
--export([
-  main/1,
-  run_server/0,
-	stop/0,
-  start/0
-]).
+-export([main/1, run_server/0, stop/0, start/0]).
 
 main(_) ->
-  start(),
-  receive
-    stop -> ok
-  end.
+	start(),
+	receive
+		stop -> ok
+	end.
 
 run_server() ->
 
@@ -34,24 +29,22 @@ run_server() ->
 	SrvRoot = lists:concat([CargoRoot,"/test/log"]),
 	DocRoot = lists:concat([CargoRoot,"/test/log"]),
 
-  case inets:start() of
+	case inets:start() of
 		ok -> {ok,inets};
 		{error,{already_started,inets}} -> {ok,inets} 
 	end,
 
 
   case inets:start(httpd, [
-    {port, 35000},
-    {server_name, "ctlogviewer"},
-    %{server_root, "/tmp"},
-    %{document_root, "/tmp"},
-		%
-    {server_root, SrvRoot},
-    {document_root, DocRoot},
+		{port, 35000},
+		{server_name, "ctlogviewer"},
+		%{server_root, "/tmp"},
+		%{document_root, "/tmp"},
+		{server_root, SrvRoot},
+		{document_root, DocRoot},
 		{directory_index, ["index.hml", "welcome.html"]},
-	
-    {bind_address, "localhost"}
-  ], stand_alone) of 
+	{bind_address, "localhost"}
+	], stand_alone) of 
 		{ok, Inets} -> {ok,Inets};
 		{error,{already_started,Inets}} -> {ok,Inets}
 	end.
@@ -61,3 +54,4 @@ start() -> run_server().
 stop() ->
 	%inets:stop(),
 	io:format("ehttpd worker stopped~n",[]).
+
