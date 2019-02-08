@@ -47,7 +47,7 @@ ViewerSpec = #{
 	directory_index => DirIndex
 }.
 
-% start LiLu viever manager
+% start LiLu viewer manager
 >application:start(lilu).
 
 % and start a viewer
@@ -56,12 +56,12 @@ ViewerSpec = #{
 On success you will see the result in your browser
 
 ```
-localhost:12345/test/index.html
+localhost:12345/index.html
 ```
 Or you can see directory items if you ommit index.html just
 
 ```
-localhost:12345/test
+localhost:12345
 ``` 
 You can stop viewer using this fucnction call
 ```erlang
