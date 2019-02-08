@@ -49,11 +49,11 @@ start_child(ChildId, ChildSpec) ->
 	io:format("~p ::spec -> ~p~n", [?MODULE, ChildSpec]),
 
 	% start inet service before
-	%FIXME: or maybe it's better to call application:ensure_all_started(compiler) ???
-	case inets:start() of
-		ok -> {ok,inets};
-		{error,{already_started,inets}} -> {ok,inets} 
-	end,
+	%FIXME: or maybe it's better to call application:ensure_all_started(intes) ???
+	%case inets:start() of
+%		ok -> {ok,inets};
+%		{error,{already_started,inets}} -> {ok,inets} 
+%	end,
 	
 	% start the configured child process 
 	Pid = case supervisor:start_child(?LILUSUP, ChildSpec) of

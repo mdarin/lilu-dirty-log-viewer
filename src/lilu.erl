@@ -108,7 +108,8 @@ handle_call(_Request, _From, State) ->
 %%--------------------------------------------------------------------
 handle_cast({start_viewer,ViewerName,ViewerSpec}, State) ->
 % function to start new viewer worker with name ViewerName
-	io:format("~p:start ~p~n spec -> ~p~n",[?MODULE,ViewerName,ViewerSpec]),
+	%io:format("~p:start ~p~n spec -> ~p~n",[?MODULE,ViewerName,ViewerSpec]),
+	io:format(" ** LiLu starring viever: ~p **~n", [ViewerName]),
 	ViewerPid = run_viewer(ViewerName, ViewerSpec),
 	NewState = [{ViewerName,ViewerPid}|State],
 	{noreply, NewState};
@@ -196,31 +197,47 @@ code_change(_OldVsn, State, _Extra) ->
 
 % prepare and run instance of httpd server
 run_viewer(ViewerName, ViewerSpec) ->
-	%TODO: prepare httpd configuration
-	case is_map(ViewerSpec) of
-		true -> io:format("~p:start ~p~n spec is map -> ~p~n",[?MODULE,ViewerName,ViewerSpec]);
-		_ -> io:format("~p:start ~p~n spec is proplist -> ~p~n", [?MODULE,ViewerName,ViewerSpec])
+	% prepare httpd configuration
+	HttpdSpec = case is_map(ViewerSpec) of
+		true -> 
+			%io:format("~p:start ~p~n spec is map -> ~p~n",[?MODULE,ViewerName,ViewerSpec]),
+			#{
+				bind_address := BindAddress,
+				port := Port,
+				root := Root,
+				server_name := ViewerName,
+				server_root := SrvRoot,
+				document_root := DocRoot,
+				directory_index := DirIndex
+			} = ViewerSpec,
+			%create httpd spec from map
+			[
+				{bind_address, BindAddress},
+				{port, Port},
+				{server_name, ViewerName},
+				{server_root, SrvRoot},
+				{document_root, DocRoot},
+				{directory_index, DirIndex}
+			];
+		_ -> 
+			%io:format("~p:start ~p~n spec is proplist -> ~p~n", [?MODULE,ViewerName,ViewerSpec]),
+			BindAddress = proplists:get_value(bind_address, ViewerSpec),
+			Port = proplists:get_value(port, ViewerSpec),
+			Root = proplists:get_value(root, ViewerSpec),
+			ViewerName = proplists:get_value(server_name, ViewerSpec),
+			SrvRoot	= proplists:get_value(server_root, ViewerSpec),
+			DocRoot = proplists:get_value(document_root, ViewerSpec),
+			DirIndex = proplists:get_value(directory_index, ViewerSpec),
+			%create httpd spec from proplist
+			[
+				{bind_address, BindAddress},
+				{port, Port},
+				{server_name, ViewerName},
+				{server_root, SrvRoot},
+				{document_root, DocRoot},
+				{directory_index, DirIndex}
+			]
 	end,
-
-	% get working directory
-	%{ok,CargoRoot} = file:get_cwd(),
-	BindAddress = "localhost",
-	Port = ?LILUPORT_DEFAULT,
-	{ok,Root} = file:get_cwd(),
-	SrvRoot = lists:concat([Root,"/test/log"]),
-	DocRoot = lists:concat([Root,"/test/log"]),
-	DirIndex = ["index.hml", "welcome.html"],
-
-
-	% create httpd spec 
-	HttpdSpec = [
-		{bind_address, BindAddress},
-		{port, Port},
-		{server_name, ViewerName},
-		{server_root, SrvRoot},
-		{document_root, DocRoot},
-		{directory_index, DirIndex}
-	],
 
 	% start httpd instance 
 	ChildSpec = #{
