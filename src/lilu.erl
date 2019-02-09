@@ -109,7 +109,7 @@ handle_call(_Request, _From, State) ->
 handle_cast({start_viewer,ViewerName,ViewerSpec}, State) ->
 % function to start new viewer worker with name ViewerName
 	%io:format("~p:start ~p~n spec -> ~p~n",[?MODULE,ViewerName,ViewerSpec]),
-	io:format(" ** LiLu starring viever: ~p **~n", [ViewerName]),
+	io:format(" ** LiLu starting viever: ~p **~n", [ViewerName]),
 	ViewerPid = run_viewer(ViewerName, ViewerSpec),
 	NewState = [{ViewerName,ViewerPid}|State],
 	{noreply, NewState};
@@ -249,7 +249,7 @@ run_viewer(ViewerName, ViewerSpec) ->
 		modules => [inets]
 	},
 	{ok,ViewerPid} = lilu_sup:start_child(ViewerName, ChildSpec),
-	io:format("~p:viewer -> ~p~n", [?MODULE, ViewerPid]),
+	%io:format("~p:viewer -> ~p~n", [?MODULE, ViewerPid]),
 	ViewerPid.
 
 
