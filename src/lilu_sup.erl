@@ -45,8 +45,8 @@ init(Args) ->
 	{ok, {SupervisorSpecs, ChildSpec}}.
 
 start_child(ChildId, ChildSpec) -> 
-	io:format("~p ::name -> ~p~n", [?MODULE, ChildId]),
-	io:format("~p ::spec -> ~p~n", [?MODULE, ChildSpec]),
+	%io:format("~p ::name -> ~p~n", [?MODULE, ChildId]),
+	%io:format("~p ::spec -> ~p~n", [?MODULE, ChildSpec]),
 
 	% start inet service before
 	%FIXME: or maybe it's better to call application:ensure_all_started(intes) ???
