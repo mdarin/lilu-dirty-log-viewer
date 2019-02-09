@@ -5,11 +5,11 @@ OTP Application LiLu creates a gen_server that manage instances of httpd specifi
 
 ```
 For example let's see the following supervised tree structure:
-LiLi
-	[worker]-lilu_viewer_manager handles viewers list
-	[worker]-ct-log-viewer handles <address>/log/ct/index.html
-	[worker]-console-viewer handles <address>/log/console/index.html
-	[worker]-error-viewer handles <address>/log/error/index.html	
+LiLu [app supervisor]
+  [worker]-lilu_viewer_manager handles viewers list
+  [worker]-ct-log-viewer handles <address>/log/ct/index.html
+  [worker]-console-viewer handles <address>/log/console/index.html
+  [worker]-error-viewer handles <address>/log/error/index.html	
 ```
 
 ```erlang
